@@ -1,0 +1,65 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+---
+name: Synchronize airflow-docker repo with Apache Airflow
+on:
+  schedule:
+    # Run synchronization every hour
+    - cron: '*/5 * * * *'
+jobs:
+  synchronize_repo:
+    timeout-minutes: 10
+    name: "Synchronize airflow-docker repo with Apache Airflow"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v2
+        with:
+          repository: apache/airflow
+          ref: master
+          # fetch everything
+          fetch-depth: 0
+          path: airflow
+      - name: "Synchronize repos"
+        run: "scripts/synchronise_repos.sh"
+      - run: git checkout main
+      - name: "Push updated git-filter-map to main"
+        uses: ad-m/github-push-action@40bf560936a8022e68a3c00e7d2abefaf01305a6  # v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tags: true
+          branch: main
+      - run: git checkout master
+      - name: "Push new commits to master"
+        uses: ad-m/github-push-action@40bf560936a8022e68a3c00e7d2abefaf01305a6  # v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tags: true
+          branch: master
+      - run: git checkout v1-10-stable
+      - name: "Push new commits to v1-10-stable"
+        uses: ad-m/github-push-action@40bf560936a8022e68a3c00e7d2abefaf01305a6  # v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tags: true
+          branch: v1-10-stable
