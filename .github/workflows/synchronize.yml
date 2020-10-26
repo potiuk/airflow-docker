@@ -19,8 +19,8 @@
 name: Synchronize airflow-docker repo with Apache Airflow
 on:
   schedule:
-    # Run synchronization every hour
-    - cron: '*/5 * * * *'
+    # Run synchronization every day
+    - cron: '23 2 * * *'
 jobs:
   synchronize_repo:
     timeout-minutes: 10
